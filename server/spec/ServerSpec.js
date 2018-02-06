@@ -116,7 +116,35 @@ describe('Node Server Request Listener Function', function() {
       });
   });
 
+  it('Should delete a message by objectId upon DELETE request', function() {
+    var stubMsg = {
+      username: 'Jono',
+      message: 'Do my bidding!'
+    };
+    var req = new stubs.request('/classes/messages', 'POST', stubMsg);
+    var res = new stubs.response();
 
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(201);
+
+
+    req = new stubs.request('/classes/messages?q=1', 'DELETE');
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(204);
+    
+
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+    
+    var messages = JSON.parse(res._data).results;
+    expect(messages.length).to.equal(2);
+  });
 
 
 

@@ -12,8 +12,8 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
-var messages = [{ objectId: 1, roomname: 'lobby', username: 'testerbot', text: 'Hello world!'}];
-var objectIdCounter = 1;
+var messages = [];
+var objectIdCounter = 0;
 
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
@@ -78,6 +78,24 @@ var requestHandler = function(request, response) {
   if (request.method === 'OPTIONS') {
     response.writeHead(200, defaultCorsHeaders);
     response.end();  
+  }
+
+  if (request.method === 'DELETE') {
+    //parse object key
+    // delete it from list of objects
+
+    // grab the object ID to delete
+    var objectIdToDelete = request.url.split('?')[1].split('=')[1];
+    messages = messages.filter((message) => {
+      if (message.objectId !== Number(objectIdToDelete)) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    response.writeHead(204, defaultCorsHeaders);
+    response.end();
   }
 
   if (request.method === 'GET' ) {
