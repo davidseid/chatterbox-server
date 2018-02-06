@@ -12,6 +12,11 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
+// var messages = [{ objectId: 1, roomname: 'lobby', text: 'A message.', username: 'josh' }];
+// var objectIdCounter = 1;
+
+var _ = require('underscore');
+
 var messages = [];
 var objectIdCounter = 0;
 
@@ -38,6 +43,34 @@ var getReq = (status, request, response) => {
   // which includes the status and all headers.
   response.writeHead(status, headers);
 
+  // test if query string exists
+  // parse that part of the url and split at the question mark
+  // split again at the equals sign to isolate the attribute
+  // check the first char of attribute to see if negative or not
+  // sort by that attribute in descending or ascending order depending on negative or pos
+  // return the new sorted array 
+
+  if (request.url.indexOf('?') !== -1) {
+    var attribute = request.url.split('?')[1].split('=')[1];
+    
+    var iteratee = (message) => {
+      return -message[attribute.slice(1)];
+    };
+
+
+    if (attribute[0] === '-') {
+      var sortedMessages = _.sortBy(messages, iteratee);
+      
+    } else {
+      var sortedMessages = _.sortBy(messages, attribtue);
+    }
+
+    var encoded = JSON.stringify({ results: sortedMessages });
+
+    response.end(encoded);
+
+  } else {
+  
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
   // response.end() will be the body of the response - i.e. what shows
@@ -45,9 +78,11 @@ var getReq = (status, request, response) => {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.;
-  var encoded = JSON.stringify({ results: messages });
+    var encoded = JSON.stringify({ results: messages });
 
-  response.end(encoded);  
+    response.end(encoded);
+
+  }  
 };
 
 
@@ -66,6 +101,30 @@ var postReq = (status, request, response) => {
   var encoded = JSON.stringify({ results: messages });
 
   response.end(encoded);  
+};
+
+var putReq = (status, request, response) => {
+  var headers = defaultCorsHeaders;
+  headers['Content-Type'] = 'application/json';
+
+  response.writeHead(status, headers);
+
+  // var json = { results: ['Hello, World!'] };
+  var requestObject = JSON.parse(request.body);
+  var objectId = requestObject.objectId;
+
+  for (var i = 0; i < messages.length; i++) {
+    if (messages[i].objectId === objectId) {
+      messages[i].text = 
+        (requestObject.text) ? requestObject.text : messages[i].text;
+      messages[i].roomname = 
+        (requestObject.roomname) ? requestObject.roomname : messages[i].roomname;
+    }
+  }
+
+  // var encoded = JSON.stringify({ results: messages });
+
+  response.end(); 
 };
 
 var requestHandler = function(request, response) {
@@ -102,7 +161,7 @@ var requestHandler = function(request, response) {
     getReq(200, request, response);
   }
 
-  if (request.method === 'POST') {
+  if (request.method === 'POST' || request.method === 'PUT') {
     var postReqString = '';
 
     request.on('data', (chunk) => {
@@ -112,7 +171,11 @@ var requestHandler = function(request, response) {
     request.on('end', () => {
       request.body = postReqString;
       
-      postReq(201, request, response);  
+      if (request.method === 'POST') {
+        postReq(201, request, response);
+      } else {
+        putReq(204, request, response);
+      }  
     });
   }
 

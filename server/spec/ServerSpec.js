@@ -146,6 +146,37 @@ describe('Node Server Request Listener Function', function() {
     expect(messages.length).to.equal(2);
   });
 
+  it('Should update a message by objectId', function () {
+    var updateData = {
+      objectId: 2,
+      text: 'Editing my last message'
+    };
+  
+    var req = new stubs.request('/classes/messages', 'PUT', updateData);
+    var res = new stubs.response();
+
+
+    handler.requestHandler(req, res);
+
+
+    expect(res._responseCode).to.equal(204);
+
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(JSON.parse(res._data).results[0].text).to.equal('Editing my last message'); 
+  });
+
+  it('Should accept an order-by parameter', function() {
+    var req = new stubs.request('/classes/messages?orderBy=-objectId', 'GET');
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(JSON.parse(res._data).results[0].objectId).to.equal(3);
+  });
 
 
   //*** TEST IDEAS ***
