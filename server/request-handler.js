@@ -12,7 +12,8 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
-var messages = [];
+var messages = [{ objectId: 1, roomname: 'lobby', username: 'testerbot', text: 'Hello world!'}];
+var objectIdCounter = 1;
 
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
@@ -58,6 +59,8 @@ var postReq = (status, request, response) => {
 
   // var json = { results: ['Hello, World!'] };
   var requestObject = JSON.parse(request.body);
+  objectIdCounter++;
+  requestObject.objectId = objectIdCounter; 
   messages.push(requestObject);  
 
   var encoded = JSON.stringify({ results: messages });
