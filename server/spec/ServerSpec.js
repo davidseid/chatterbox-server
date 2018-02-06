@@ -116,4 +116,22 @@ describe('Node Server Request Listener Function', function() {
       });
   });
 
+
+
+
+
+  //*** TEST IDEAS ***
+  // 1) Accommodate Delete or Update Requests
+  // 2) Expand error responses
+  // 3) Require API Keys
+  // 4) Redirect Responses (300)
+
+
+
+
+
+
+
+
+
 });

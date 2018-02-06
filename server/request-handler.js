@@ -67,7 +67,7 @@ var postReq = (status, request, response) => {
 
 var requestHandler = function(request, response) {
 
-  if (request.url !== '/classes/messages') {
+  if (request.url.slice(0, 17) !== '/classes/messages') {
     response.writeHead(404, defaultCorsHeaders);
     response.end(JSON.stringify({ error: 'Bad request.' }));
   }
@@ -150,6 +150,8 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
+
+
 
 
 module.exports.requestHandler = requestHandler;
