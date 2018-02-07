@@ -15,7 +15,9 @@ this file and include it in basic-server.js so that it actually works.
 // var messages = [{ objectId: 1, roomname: 'lobby', text: 'A message.', username: 'josh' }];
 // var objectIdCounter = 1;
 
-var _ = require('underscore');
+const _ = require('underscore');
+const fs = require('fs');
+const URL = require('url');
 
 var messages = [];
 var objectIdCounter = 0;
@@ -48,10 +50,14 @@ var getReq = (status, request, response) => {
   // split again at the equals sign to isolate the attribute
   // check the first char of attribute to see if negative or not
   // sort by that attribute in descending or ascending order depending on negative or pos
-  // return the new sorted array 
+  // return the new sorted array
 
-  if (request.url.indexOf('?') !== -1) {
-    var attribute = request.url.split('?')[1].split('=')[1];
+  var getParams = URL.parse(request.url, true);
+  var orderBy = getParams.query.orderBy;
+ 
+
+  if (orderBy !== undefined) {
+    var attribute = orderBy;
     
     var iteratee = (message) => {
       return -message[attribute.slice(1)];
@@ -144,7 +150,12 @@ var requestHandler = function(request, response) {
     // delete it from list of objects
 
     // grab the object ID to delete
-    var objectIdToDelete = request.url.split('?')[1].split('=')[1];
+    // var objectIdToDelete = request.url.split('?')[1].split('=')[1];
+
+    var deleteParams = URL.parse(request.url, true);
+    // var deleteParams = new URLSearchParams(deleteURL.searchParams);
+    var objectIdToDelete = deleteParams.query.q;
+
     messages = messages.filter((message) => {
       if (message.objectId !== Number(objectIdToDelete)) {
         return true;
@@ -158,6 +169,26 @@ var requestHandler = function(request, response) {
   }
 
   if (request.method === 'GET' ) {
+    var url = request.url;
+
+    if (url === '/') {
+      // index case
+      
+    }
+
+    if (url.indexOf('.js') !== -1) {
+      // return js file
+    }
+
+    if (url.indexOf('.css') !== -1) {
+      // return css
+    }
+
+    if (url.indexOf('.html') !== -1) {
+      
+    }
+
+
     getReq(200, request, response);
   }
 
