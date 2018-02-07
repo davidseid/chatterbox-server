@@ -18,6 +18,7 @@ this file and include it in basic-server.js so that it actually works.
 const _ = require('underscore');
 const fs = require('fs');
 const URL = require('url');
+const pathM = require('path');
 
 var messages = [];
 var objectIdCounter = 0;
@@ -134,10 +135,25 @@ var putReq = (status, request, response) => {
 };
 
 var requestHandler = function(request, response) {
+  var url = request.url;
+  var requestURL = URL.parse(url, true);
 
-  if (request.url.slice(0, 17) !== '/classes/messages') {
+  var validURLs = [
+    '/classes/messages',
+    '/'
+  ];
+
+  var validFileTypes = [
+    '.js',
+    '.html',
+    '.css',
+    '.png'
+  ];
+
+  if (validURLs.indexOf(requestURL.pathname) === -1 
+      && validFileTypes.indexOf(requestURL.pathname) === -1) {
     response.writeHead(404, defaultCorsHeaders);
-    response.end(JSON.stringify({ error: 'Bad request.' }));
+    response.end(JSON.stringify({ error: 'Bad request.' }));  
   }
 
   if (request.method === 'OPTIONS') {
@@ -169,27 +185,38 @@ var requestHandler = function(request, response) {
   }
 
   if (request.method === 'GET' ) {
-    var url = request.url;
+    // console.log(requestURL);
 
-    if (url === '/') {
+    var getFile = (contentType, path) => {
+      console.log('Getting file: ', path, process.cwd());
+
+      fs.readFile(process.cwd() + path, (err, data) => {
+        console.log('reading file', data);
+        if (err) { throw err; }
+        defaultCorsHeaders['Content-Type'] = contentType;
+
+        response.writeHead(200, defaultCorsHeaders);
+
+        response.end(data);
+      });    
+    };
+
+
+    if (requestURL.pathname === '/') {
       // index case
-      
+
+      getFile('text/html; charset=utf-8', '/index.html');
+    } else {
+      if (url.indexOf('.js') !== -1) {
+        getFile('text/javascript; charset=utf-8', requestURL.pathname);
+      } else if (url.indexOf('.css') !== -1) {
+        getFile('text/css; charset=utf-8', requestURL.pathname);
+      } else if (url.indexOf('.html') !== -1) {
+        getFile('text/html; charset=utf-8', requestURL.pathname);
+      } else {
+        getReq(200, request, response);
+      }
     }
-
-    if (url.indexOf('.js') !== -1) {
-      // return js file
-    }
-
-    if (url.indexOf('.css') !== -1) {
-      // return css
-    }
-
-    if (url.indexOf('.html') !== -1) {
-      
-    }
-
-
-    getReq(200, request, response);
   }
 
   if (request.method === 'POST' || request.method === 'PUT') {
@@ -209,6 +236,8 @@ var requestHandler = function(request, response) {
       }  
     });
   }
+
+
 
 
   // Request and Response come from node's http module.
@@ -254,6 +283,8 @@ var requestHandler = function(request, response) {
   // var encoded = JSON.stringify(json);
 
   // response.end(encoded);
+
+
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
